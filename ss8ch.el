@@ -48,7 +48,17 @@
    so, an agent is started and registered. Then runs ssh-add to
    add a key to the running SSH agent. Emacs prompts for a
    password as long as the process requires input."
-  (interactive (list (read-file-name "select ssh key: " "~/.ssh/")))
+  (interactive
+   (list (concat "~/.ssh/"
+                 (completing-read
+                  "Select ssh key to add: "
+                  (remove
+                   nil
+                   (mapcar (lambda (file-name)
+                             (save-match-data
+                               (if (string-match "\\([^.]+\\)\\.pub" file-name)
+                                   (match-string 1 file-name))))
+                           (directory-files "~/.ssh/")))))))
   (ss8ch-ensure-agent)
   (let (process)
     (unwind-protect
