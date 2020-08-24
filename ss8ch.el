@@ -9,13 +9,10 @@
   "Takes a var-name and the response of calling `ssh-agent` in a
    shell environment. Finds the value for the given var-name in
    the given agent response."
-  (let* ((start-idx (+ 1
-                       (length var-name)
-                       (string-match var-name response)))
-         (end-idx (string-match ss8ch-agent-search-end
-                                response
-                                start-idx)))
-    (substring response start-idx end-idx)))
+  (save-match-data
+    (if (string-match (concat var-name "=\\([^;]+\\)" ss8ch-agent-search-end)
+                      response)
+        (match-string 1 response))))
 
 (defun ss8ch-ensure-agent ()
   "Checks if the environment contains the pid var for an ssh
@@ -43,22 +40,24 @@
       (if (not (string-match "^\n+$" process-message))
           (message (concat "ss8ch ~ " (string-trim process-message)))))))
 
+(defun find-private-ssh-keys-in (directory)
+  "Returns a list of file paths under directory for private ssh
+   keys."
+  (remove nil (mapcar (lambda (file-name)
+                    (save-match-data
+                      (message file-name)
+                      (if (string-match "^\\([^.]+\\)\\.pub$" file-name)
+                          (concat directory (match-string 1 file-name)))))
+                  (directory-files directory))))
+
 (defun ss8ch-add (key-file)
   "Checks if an agent is registered in the environment. If not
    so, an agent is started and registered. Then runs ssh-add to
-   add a key to the running SSH agent. Emacs prompts for a
-   password as long as the process requires input."
+   add a key to the running SSH agent, using the minibuffer to
+   ask for the keys passphrase."
   (interactive
-   (list (concat "~/.ssh/"
-                 (completing-read
-                  "Select ssh key to add: "
-                  (remove
-                   nil
-                   (mapcar (lambda (file-name)
-                             (save-match-data
-                               (if (string-match "\\([^.]+\\)\\.pub" file-name)
-                                   (match-string 1 file-name))))
-                           (directory-files "~/.ssh/")))))))
+   (list (completing-read "Select ssh key to add: "
+                          (find-private-ssh-keys-in "~/.ssh/"))))
   (ss8ch-ensure-agent)
   (let (process)
     (unwind-protect
