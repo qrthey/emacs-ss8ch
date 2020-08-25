@@ -44,11 +44,11 @@
   "Returns a list of file paths under directory for private ssh
    keys."
   (remove nil (mapcar (lambda (file-name)
-                    (save-match-data
-                      (message file-name)
-                      (if (string-match "^\\([^.]+\\)\\.pub$" file-name)
-                          (concat directory (match-string 1 file-name)))))
-                  (directory-files directory))))
+                        (save-match-data
+                          (message file-name)
+                          (if (string-match "^\\([^.]+\\)\\.pub$" file-name)
+                              (concat directory (match-string 1 file-name)))))
+                      (directory-files directory))))
 
 (defun ss8ch-add (key-file)
   "Checks if an agent is registered in the environment. If not
