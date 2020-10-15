@@ -45,7 +45,6 @@
    keys."
   (remove nil (mapcar (lambda (file-name)
                         (save-match-data
-                          (message file-name)
                           (if (string-match "^\\([^.]+\\)\\.pub$" file-name)
                               (concat directory (match-string 1 file-name)))))
                       (directory-files directory))))
